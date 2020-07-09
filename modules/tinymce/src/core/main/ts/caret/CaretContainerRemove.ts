@@ -87,8 +87,11 @@ const remove = (caretContainerNode: Node) => {
   }
 
   if (isText(caretContainerNode)) {
-    const text = Zwsp.trim(getNodeValue(caretContainerNode));
-    setNodeValue(caretContainerNode, text);
+    const origText = getNodeValue(caretContainerNode);
+    const text = Zwsp.trim(origText);
+    if (origText !== text) {
+      setNodeValue(caretContainerNode, text);
+    }
   }
 };
 

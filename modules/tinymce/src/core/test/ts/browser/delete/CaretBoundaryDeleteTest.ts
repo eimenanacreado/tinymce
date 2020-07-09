@@ -6,7 +6,7 @@ import Editor from 'tinymce/core/api/Editor';
 import * as Zwsp from 'tinymce/core/text/Zwsp';
 import Theme from 'tinymce/themes/silver/Theme';
 
-UnitTest.asynctest('browser.tinymce.core.delete.CefBoundaryDeleteTest', (success, failure) => {
+UnitTest.asynctest('browser.tinymce.core.delete.CaretBoundaryDeleteTest', (success, failure) => {
   Theme();
 
   const sTestDelete = function (_editor: Editor, tinyApis: TinyApis, tinyActions: TinyActions) {

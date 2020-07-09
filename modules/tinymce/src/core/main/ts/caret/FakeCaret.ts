@@ -35,7 +35,9 @@ interface CaretState {
 const browser = PlatformDetection.detect().browser;
 
 const isContentEditableFalse = NodeType.isContentEditableFalse;
+const isMedia = NodeType.isMedia;
 const isTableCell = (node: Node) => NodeType.isElement(node) && /^(TD|TH)$/i.test(node.tagName);
+const fakeCaretSelector = '*[contentEditable=false],table,video,audio,embed,object';
 
 const getAbsoluteClientRect = (root: HTMLElement, element: HTMLElement, before: boolean): GeomClientRect.ClientRect => {
   const clientRect = GeomClientRect.collapse(element.getBoundingClientRect(), before);
@@ -72,15 +74,13 @@ const getAbsoluteClientRect = (root: HTMLElement, element: HTMLElement, before: 
 };
 
 const trimInlineCaretContainers = (root: HTMLElement): void => {
-  let node, sibling, i, data;
+  const fakeCaretTargetNodes = SelectorFilter.descendants(SugarElement.fromDom(root), fakeCaretSelector);
+  for (let i = 0; i < fakeCaretTargetNodes.length; i++) {
+    const node = fakeCaretTargetNodes[i].dom();
 
-  const contentEditableFalseNodes = SelectorFilter.descendants(SugarElement.fromDom(root), '*[contentEditable=false]');
-  for (i = 0; i < contentEditableFalseNodes.length; i++) {
-    node = contentEditableFalseNodes[i].dom();
-
-    sibling = node.previousSibling;
+    let sibling = node.previousSibling;
     if (CaretContainer.endsWithCaretContainer(sibling)) {
-      data = sibling.data;
+      const data = sibling.data;
 
       if (data.length === 1) {
         sibling.parentNode.removeChild(sibling);
@@ -91,7 +91,7 @@ const trimInlineCaretContainers = (root: HTMLElement): void => {
 
     sibling = node.nextSibling;
     if (CaretContainer.startsWithCaretContainer(sibling)) {
-      data = sibling.data;
+      const data = sibling.data;
 
       if (data.length === 1) {
         sibling.parentNode.removeChild(sibling);
@@ -140,7 +140,7 @@ export const FakeCaret = (editor: Editor, root: HTMLElement, isBlock: (node: Nod
       caretContainerNode = CaretContainer.insertInline(element, before);
       rng = element.ownerDocument.createRange();
 
-      if (isContentEditableFalse(caretContainerNode.nextSibling)) {
+      if (isFakeCaretTarget(caretContainerNode.nextSibling)) {
         rng.setStart(caretContainerNode, 0);
         rng.setEnd(caretContainerNode, 0);
       } else {
@@ -223,4 +223,5 @@ export const FakeCaret = (editor: Editor, root: HTMLElement, isBlock: (node: Nod
 
 export const isFakeCaretTableBrowser = (): boolean => browser.isIE() || browser.isEdge() || browser.isFirefox();
 
-export const isFakeCaretTarget = (node: Node): boolean => isContentEditableFalse(node) || (NodeType.isTable(node) && isFakeCaretTableBrowser());
+export const isFakeCaretTarget = (node: Node): node is Element =>
+  isContentEditableFalse(node) || isMedia(node) || (NodeType.isTable(node) && isFakeCaretTableBrowser());
